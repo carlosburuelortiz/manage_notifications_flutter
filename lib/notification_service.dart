@@ -1,4 +1,5 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'timezone_helper.dart';
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationPlugin =
     FlutterLocalNotificationsPlugin();
@@ -12,4 +13,5 @@ Future<void> initializeNotifications() async {
   );
 
   await flutterLocalNotificationPlugin.initialize(initializationSettings);
+  await initializeTimeZone(); // Important!
 }

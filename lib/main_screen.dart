@@ -1,3 +1,7 @@
+import 'dart:io';
+
+import 'package:android_intent_plus/android_intent.dart';
+import 'package:android_intent_plus/flag.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -8,6 +12,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:manage_notifications_flutter/bloc/permission_bloc.dart';
 import 'package:manage_notifications_flutter/bloc/permission_event.dart';
 import 'package:manage_notifications_flutter/bloc/permission_state.dart';
+import 'package:timezone/timezone.dart' as tz;
 
 class MainScreen extends StatelessWidget {
   const MainScreen({super.key});
@@ -41,31 +46,95 @@ class MainScreen extends StatelessWidget {
   void showPermissionGranted(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('El permiso ya ha sido concedido'),
+        content: Text('Notification permission was granted'),
         duration: const Duration(milliseconds: 1500),
       ),
     );
   }
 
   Future<void> showNotification() async {
-    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-      'channel_id',
-      'channel_name',
-      channelDescription: 'channel_description',
-      importance: Importance.max,
-      priority: Priority.high,
-    );
+    const AndroidNotificationDetails androidDetails =
+        AndroidNotificationDetails(
+          'channel_id',
+          'channel_name',
+          channelDescription: 'channel_description',
+          importance: Importance.max,
+          priority: Priority.high,
+        );
 
     const NotificationDetails notificationDetails = NotificationDetails(
-      android: androidDetails
+      android: androidDetails,
     );
 
     await flutterLocalNotificationPlugin.show(
       0, // Notification id
-      'Hola!', // Title
-      'Esta es una notificacion manual', // Body
+      'Hi!', // Title
+      'This is a manual notification', // Body
       notificationDetails,
     );
+  }
+
+  Future<void> scheduleDailyNotification({
+    required int hour,
+    required int minute,
+  }) async {
+    const androidDetails = AndroidNotificationDetails(
+      'daily_channel_id',
+      'Daily Notifications',
+      channelDescription: 'Notificaciones diarias a una hora especifica',
+      importance: Importance.max,
+      priority: Priority.high,
+    );
+
+    const notificationDetails = NotificationDetails(android: androidDetails);
+
+    await flutterLocalNotificationPlugin.zonedSchedule(
+      0, //ID
+      'Recordatorio diario',
+      'Ya paso 1 minuto bastardo!',
+      _nextInstanceOfTime(hour, minute),
+      notificationDetails,
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
+      matchDateTimeComponents: DateTimeComponents.time, // daily repeat
+    );
+  }
+
+  tz.TZDateTime _nextInstanceOfTime(int hour, int minute) {
+    final now = tz.TZDateTime.now(tz.local);
+    var scheduled = tz.TZDateTime(
+      tz.local,
+      now.year,
+      now.month,
+      now.day,
+      now.hour, //hour,
+      now.minute, //minute
+      now.second,
+    );
+    scheduled = scheduled.add(Duration(minutes: 1));
+    // if (scheduled.isBefore(now)) {
+    //   scheduled = scheduled.add(Duration(days: 1));
+    // }
+    return scheduled;
+  }
+
+  Future<void> requestExactAlarmPermission(BuildContext context) async {
+    if (await _isAtLeastAndroid12()) {
+      final intent = AndroidIntent(
+        action: 'android.settings.REQUEST_SCHEDULE_EXACT_ALARM',
+        flags: <int>[Flag.FLAG_ACTIVITY_NEW_TASK],
+      );
+      await intent.launch();
+    } else {
+      print('Alarm permission was granted.');
+    }
+  }
+
+  // the meaning the method is wrong
+  Future<bool> _isAtLeastAndroid12() async {
+    return Platform.isAndroid &&
+        (await Permission.scheduleExactAlarm.status.isDenied);
   }
 
   @override
@@ -89,13 +158,31 @@ class MainScreen extends StatelessWidget {
                     RequestNotificationPermission(),
                   );
                 },
-                child: Text('Solicitar permiso'),
+                child: Text(
+                  'Request notification permission',
+                  style: TextStyle(color: Colors.red),
+                ),
               ),
               TextButton(
                 onPressed: () {
                   showNotification();
                 },
-                child: Text('Mostrar notificación')
+                child: Text('Show manual notification'),
+              ),
+              TextButton(
+                onPressed: () {
+                  requestExactAlarmPermission(context);
+                },
+                child: Text(
+                  'Request alarm permission',
+                  style: TextStyle(color: Colors.red),
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  scheduleDailyNotification(hour: 10, minute: 30);
+                },
+                child: Text('Schedule notification'),
               ),
             ],
           ),
