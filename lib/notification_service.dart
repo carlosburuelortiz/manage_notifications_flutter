@@ -6,7 +6,7 @@ final FlutterLocalNotificationsPlugin flutterLocalNotificationPlugin =
 
 Future<void> initializeNotifications() async {
   const AndroidInitializationSettings initializationSettingsAndroid =
-      AndroidInitializationSettings("@mipmap/ic_launcher");
+      AndroidInitializationSettings("@drawable/ic_stat_name");
 
   const InitializationSettings initializationSettings = InitializationSettings(
     android: initializationSettingsAndroid,

@@ -6,7 +6,7 @@
     <application
         android:label="manage_notifications_flutter"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_notification">
 
         <activity
             android:name=".MainActivity"
