@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:manage_notifications_flutter/notification_service.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import 'package:manage_notifications_flutter/bloc/permission_bloc.dart';
@@ -45,6 +47,27 @@ class MainScreen extends StatelessWidget {
     );
   }
 
+  Future<void> showNotification() async {
+    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+      'channel_id',
+      'channel_name',
+      channelDescription: 'channel_description',
+      importance: Importance.max,
+      priority: Priority.high,
+    );
+
+    const NotificationDetails notificationDetails = NotificationDetails(
+      android: androidDetails
+    );
+
+    await flutterLocalNotificationPlugin.show(
+      0, // Notification id
+      'Hola!', // Title
+      'Esta es una notificacion manual', // Body
+      notificationDetails,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocListener<PermissionBloc, PermissionState>(
@@ -57,13 +80,24 @@ class MainScreen extends StatelessWidget {
       },
       child: Scaffold(
         body: Center(
-          child: TextButton(
-            onPressed: () {
-              context.read<PermissionBloc>().add(
-                RequestNotificationPermission(),
-              );
-            },
-            child: Text('Solicitar permiso'),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              TextButton(
+                onPressed: () {
+                  context.read<PermissionBloc>().add(
+                    RequestNotificationPermission(),
+                  );
+                },
+                child: Text('Solicitar permiso'),
+              ),
+              TextButton(
+                onPressed: () {
+                  showNotification();
+                },
+                child: Text('Mostrar notificación')
+              ),
+            ],
           ),
         ),
       ),
