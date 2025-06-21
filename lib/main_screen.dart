@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:android_intent_plus/android_intent.dart';
 import 'package:android_intent_plus/flag.dart';
 import 'package:flutter/material.dart';
@@ -8,11 +6,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:manage_notifications_flutter/notification_service.dart';
 import 'package:permission_handler/permission_handler.dart';
-
-import 'package:manage_notifications_flutter/bloc/permission_bloc.dart';
-import 'package:manage_notifications_flutter/bloc/permission_event.dart';
-import 'package:manage_notifications_flutter/bloc/permission_state.dart';
 import 'package:timezone/timezone.dart' as tz;
+
+import 'bloc/blocs.dart';
 
 class MainScreen extends StatelessWidget {
   const MainScreen({super.key});
@@ -43,7 +39,7 @@ class MainScreen extends StatelessWidget {
     );
   }
 
-  void showPermissionGranted(BuildContext context) {
+  void showSnackBarMessage(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Notification permission was granted'),
@@ -112,41 +108,54 @@ class MainScreen extends StatelessWidget {
       now.minute, //minute
       now.second,
     );
-    scheduled = scheduled.add(Duration(minutes: 1));
+    scheduled = scheduled.add(Duration(seconds: 15));
     // if (scheduled.isBefore(now)) {
     //   scheduled = scheduled.add(Duration(days: 1));
     // }
     return scheduled;
   }
 
-  Future<void> requestExactAlarmPermission(BuildContext context) async {
-    if (await _isAtLeastAndroid12()) {
-      final intent = AndroidIntent(
-        action: 'android.settings.REQUEST_SCHEDULE_EXACT_ALARM',
-        flags: <int>[Flag.FLAG_ACTIVITY_NEW_TASK],
-      );
-      await intent.launch();
-    } else {
-      print('Alarm permission was granted.');
-    }
-  }
-
-  // the meaning the method is wrong
-  Future<bool> _isAtLeastAndroid12() async {
-    return Platform.isAndroid &&
-        (await Permission.scheduleExactAlarm.status.isDenied);
+  requestScheduleExactAlarmActivity() async {
+    final intent = AndroidIntent(
+      action: 'android.settings.REQUEST_SCHEDULE_EXACT_ALARM',
+      flags: <int>[Flag.FLAG_ACTIVITY_NEW_TASK],
+    );
+    await intent.launch();
+    // Request if alarm permission was granted
+    // final result = await intent.launch();
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<PermissionBloc, PermissionState>(
-      listener: (context, state) {
-        if (state is PermissionDeniedPermanently) {
-          showNotificationPermissionDialog(context);
-        } else {
-          showPermissionGranted(context);
-        }
-      },
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<PermissionBloc, PermissionState>(
+          listener: (context, state) {
+            if (state is PermissionDeniedPermanently) {
+              showNotificationPermissionDialog(context);
+            } else {
+              showSnackBarMessage(
+                context,
+                'Notification permission was granted',
+              );
+            }
+          },
+        ),
+        BlocListener<AlarmPermissionBloc, AlarmPermissionState>(
+          listener: (context, state) {
+            if (state is AlarmPermissionDenied) {
+              requestScheduleExactAlarmActivity();
+            } else if (state is AlarmPermissionIsNotAndroid) {
+              showSnackBarMessage(
+                context,
+                "Alarm permission is supported only in Android",
+              );
+            } else {
+              showSnackBarMessage(context, 'Alarm permission was granted');
+            }
+          },
+        ),
+      ],
       child: Scaffold(
         body: Center(
           child: Column(
@@ -171,7 +180,9 @@ class MainScreen extends StatelessWidget {
               ),
               TextButton(
                 onPressed: () {
-                  requestExactAlarmPermission(context);
+                  context.read<AlarmPermissionBloc>().add(
+                    RequestAlarmPermission(),
+                  );
                 },
                 child: Text(
                   'Request alarm permission',
