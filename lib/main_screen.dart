@@ -10,8 +10,43 @@ import 'package:timezone/timezone.dart' as tz;
 
 import 'bloc/blocs.dart';
 
-class MainScreen extends StatelessWidget {
+class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
+
+  @override
+  State<MainScreen> createState() => _MainScreenState();
+}
+
+class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
+  bool _shouldCheckAlarmPermission = false;
+  bool _shouldCheckNotificationPermission = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      if (_shouldCheckAlarmPermission) {
+        _shouldCheckAlarmPermission = false;
+        context.read<AlarmPermissionBloc>().add(RequestAlarmPermission());
+      }
+
+      if (_shouldCheckNotificationPermission) {
+        _shouldCheckNotificationPermission = false;
+        context.read<PermissionBloc>().add(RequestNotificationPermission());
+      }
+    }
+  }
 
   void showNotificationPermissionDialog(BuildContext context) {
     showDialog(
@@ -30,6 +65,7 @@ class MainScreen extends StatelessWidget {
               TextButton(
                 onPressed: () async {
                   Navigator.of(context).pop();
+                  _shouldCheckNotificationPermission = true;
                   await openAppSettings();
                 },
                 child: const Text('Ir a ajustes'),
@@ -104,25 +140,23 @@ class MainScreen extends StatelessWidget {
       now.year,
       now.month,
       now.day,
-      now.hour, //hour,
-      now.minute, //minute
+      hour,
+      minute,
       now.second,
     );
-    scheduled = scheduled.add(Duration(seconds: 15));
-    // if (scheduled.isBefore(now)) {
-    //   scheduled = scheduled.add(Duration(days: 1));
-    // }
+    if (scheduled.isBefore(now)) {
+      scheduled = scheduled.add(Duration(days: 1));
+    }
     return scheduled;
   }
 
   requestScheduleExactAlarmActivity() async {
+    _shouldCheckAlarmPermission = true;
     final intent = AndroidIntent(
       action: 'android.settings.REQUEST_SCHEDULE_EXACT_ALARM',
       flags: <int>[Flag.FLAG_ACTIVITY_NEW_TASK],
     );
     await intent.launch();
-    // Request if alarm permission was granted
-    // final result = await intent.launch();
   }
 
   @override

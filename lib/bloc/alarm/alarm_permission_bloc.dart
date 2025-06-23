@@ -9,16 +9,23 @@ import 'package:permission_handler/permission_handler.dart';
 class AlarmPermissionBloc
     extends Bloc<AlarmPermissionEvent, AlarmPermissionState> {
   AlarmPermissionBloc() : super(AlarmPermissionInitial()) {
-    on<RequestAlarmPermission>((event, emit) async {
-      if (!Platform.isAndroid) {
-        emit(AlarmPermissionIsNotAndroid());
+    on<RequestAlarmPermission>(_handlePermissionEvent);
+  }
+
+  Future<void> _handlePermissionEvent(
+    AlarmPermissionEvent event,
+    Emitter<AlarmPermissionState> emit,
+  ) async {
+    if (!Platform.isAndroid) {
+      emit(AlarmPermissionIsNotAndroid());
+    } else {
+      final hasPermission =
+          await Permission.scheduleExactAlarm.status.isGranted;
+      if (hasPermission) {
+        emit(AlarmPermissionGranted());
       } else {
-        if (await Permission.scheduleExactAlarm.status.isGranted) {
-          emit(AlarmPermissionGranted());
-        } else {
-          emit(AlarmPermissionDenied());
-        }
+        emit(AlarmPermissionDenied());
       }
-    });
+    }
   }
 }
