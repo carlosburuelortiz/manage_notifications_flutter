@@ -40,6 +40,7 @@ class MainScreen extends StatelessWidget {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('El permiso ya ha sido concedido'),
+        duration: const Duration(milliseconds: 1500),
       ),
     );
   }
