@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:manage_notifications_flutter/bloc/blocs.dart';
 import 'package:manage_notifications_flutter/main_screen.dart';
+import 'package:manage_notifications_flutter/notification_scheduler_service.dart';
 import 'package:manage_notifications_flutter/notification_service.dart';
 
 void main() async {
@@ -23,6 +24,9 @@ class MyApp extends StatelessWidget {
         providers: [
           BlocProvider(create: (_) => PermissionBloc()),
           BlocProvider(create: (_) => AlarmPermissionBloc()),
+          BlocProvider(
+            create: (_) => TimePickerBloc(NotificationSchedulerService()),
+          ),
         ],
         child: MainScreen(),
       ),
