@@ -9,6 +9,7 @@ import 'package:manage_notifications_flutter/presentation/mixin/time_picker_mixi
 import 'package:permission_handler/permission_handler.dart';
 
 import 'bloc/blocs.dart';
+import 'presentation/widget/widgets.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -151,7 +152,7 @@ class _MainScreenState extends State<MainScreen>
             if (state is TimePickerSelected) {
               showSnackBarMessage(
                 context,
-                'Hora seleccionada ${state.timeOfDay.format(context)}',
+                'Chose time ${state.timeOfDay.format(context)}',
               );
             }
           },
@@ -162,41 +163,36 @@ class _MainScreenState extends State<MainScreen>
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              TextButton(
-                onPressed: () {
-                  context.read<PermissionBloc>().add(
-                    RequestNotificationPermission(),
-                  );
-                },
-                child: Text(
-                  'Request notification permission',
-                  style: TextStyle(color: Colors.red),
-                ),
+              CustomButton(
+                label: 'Request notification permission',
+                onPressed:
+                    () => context.read<PermissionBloc>().add(
+                      RequestNotificationPermission(),
+                    ),
+                textColor: Colors.red,
               ),
-              TextButton(
-                onPressed: () {
-                  showNotification();
-                },
-                child: Text('Show manual notification'),
+
+              CustomButton(
+                label: 'Show manual notification',
+                onPressed: () => showNotification(),
               ),
-              TextButton(
-                onPressed: () {
-                  context.read<AlarmPermissionBloc>().add(
-                    RequestAlarmPermission(),
-                  );
-                },
-                child: Text(
-                  'Request alarm permission',
-                  style: TextStyle(color: Colors.red),
-                ),
+
+              CustomButton(
+                label: 'Request alarm permission',
+                onPressed:
+                    () => context.read<AlarmPermissionBloc>().add(
+                      RequestAlarmPermission(),
+                    ),
+                textColor: Colors.red,
               ),
-              TextButton(
+
+              CustomButton(
+                label: 'Schedule notification',
                 onPressed: () async {
                   final bloc = context.read<TimePickerBloc>();
                   await selectTime(context);
                   bloc.add(SelectTimeEvent(selectedTime));
                 },
-                child: Text('Schedule notification'),
               ),
             ],
           ),
