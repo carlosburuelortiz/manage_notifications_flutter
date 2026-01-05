@@ -1,14 +1,16 @@
-import 'package:android_intent_plus/android_intent.dart';
-import 'package:android_intent_plus/flag.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:manage_notifications_flutter/core/app_constant.dart';
+import 'package:manage_notifications_flutter/core/injection.dart';
+import 'package:manage_notifications_flutter/core/ui_helpers.dart';
 import 'package:manage_notifications_flutter/notification_service.dart';
 import 'package:manage_notifications_flutter/presentation/mixin/time_picker_mixin.dart';
+import 'package:manage_notifications_flutter/service/android_settings_service.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import 'bloc/blocs.dart';
+import 'presentation/widget/widgets.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -29,12 +31,6 @@ class _MainScreenState extends State<MainScreen>
   }
 
   @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       if (_shouldCheckAlarmPermission) {
@@ -49,159 +45,126 @@ class _MainScreenState extends State<MainScreen>
     }
   }
 
-  void showNotificationPermissionDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Permiso necesario'),
-            content: Text(
-              'Para poder enviarte notificaciones, debes habilitar los persmisos desde los ajustes del sistema',
-            ),
-            actions: [
-              TextButton(
-                onPressed: Navigator.of(context).pop,
-                child: const Text('Cancelar'),
-              ),
-              TextButton(
-                onPressed: () async {
-                  Navigator.of(context).pop();
-                  _shouldCheckNotificationPermission = true;
-                  await openAppSettings();
-                },
-                child: const Text('Ir a ajustes'),
-              ),
-            ],
-          ),
-    );
-  }
-
-  void showSnackBarMessage(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        duration: const Duration(milliseconds: 1500),
-      ),
-    );
-  }
-
-  Future<void> showNotification() async {
-    const AndroidNotificationDetails androidDetails =
-        AndroidNotificationDetails(
-          'channel_id',
-          'channel_name',
-          channelDescription: 'channel_description',
-          importance: Importance.max,
-          priority: Priority.high,
-        );
-
-    const NotificationDetails notificationDetails = NotificationDetails(
-      android: androidDetails,
-    );
-
-    await flutterLocalNotificationPlugin.show(
-      0, // Notification id
-      'Hi!', // Title
-      'This is a manual notification', // Body
-      notificationDetails,
-    );
-  }
-
-  requestScheduleExactAlarmActivity() async {
-    _shouldCheckAlarmPermission = true;
-    final intent = AndroidIntent(
-      action: 'android.settings.REQUEST_SCHEDULE_EXACT_ALARM',
-      flags: <int>[Flag.FLAG_ACTIVITY_NEW_TASK],
-    );
-    await intent.launch();
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return MultiBlocListener(
-      listeners: [
-        BlocListener<PermissionBloc, PermissionState>(
-          listener: (context, state) {
-            if (state is PermissionDeniedPermanently) {
-              showNotificationPermissionDialog(context);
-            } else {
-              showSnackBarMessage(
-                context,
-                'Notification permission was granted',
-              );
-            }
-          },
-        ),
-        BlocListener<AlarmPermissionBloc, AlarmPermissionState>(
-          listener: (context, state) {
-            if (state is AlarmPermissionDenied) {
-              requestScheduleExactAlarmActivity();
-            } else if (state is AlarmPermissionIsNotAndroid) {
-              showSnackBarMessage(
-                context,
-                "Alarm permission is supported only in Android",
-              );
-            } else {
-              showSnackBarMessage(context, 'Alarm permission was granted');
-            }
-          },
-        ),
-        BlocListener<TimePickerBloc, TimePickerState>(
-          listener: (context, state) {
-            if (state is TimePickerSelected) {
-              showSnackBarMessage(
-                context,
-                'Hora seleccionada ${state.timeOfDay.format(context)}',
-              );
-            }
-          },
-        ),
-      ],
+      listeners: _buildListeners(),
       child: Scaffold(
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              TextButton(
-                onPressed: () {
-                  context.read<PermissionBloc>().add(
-                    RequestNotificationPermission(),
-                  );
-                },
-                child: Text(
-                  'Request notification permission',
-                  style: TextStyle(color: Colors.red),
-                ),
-              ),
-              TextButton(
-                onPressed: () {
-                  showNotification();
-                },
-                child: Text('Show manual notification'),
-              ),
-              TextButton(
-                onPressed: () {
-                  context.read<AlarmPermissionBloc>().add(
-                    RequestAlarmPermission(),
-                  );
-                },
-                child: Text(
-                  'Request alarm permission',
-                  style: TextStyle(color: Colors.red),
-                ),
-              ),
-              TextButton(
-                onPressed: () async {
-                  final bloc = context.read<TimePickerBloc>();
-                  await selectTime(context);
-                  bloc.add(SelectTimeEvent(selectedTime));
-                },
-                child: Text('Schedule notification'),
-              ),
-            ],
+            children: _buildActionButtons(),
           ),
         ),
       ),
     );
+  }
+
+  List<Widget> _buildActionButtons() {
+    return [
+      CustomButton(
+        label: AppConstant.requestNotificationLabel,
+        onPressed:
+            () => context.read<PermissionBloc>().add(
+              RequestNotificationPermission(),
+            ),
+        textColor: Colors.red,
+      ),
+
+      CustomButton(
+        label: AppConstant.showManualNotificationLabel,
+        onPressed: () => sl<NotificationService>().showManualNotification(),
+      ),
+
+      CustomButton(
+        label: AppConstant.requestAlarmLabel,
+        onPressed:
+            () => context.read<AlarmPermissionBloc>().add(
+              RequestAlarmPermission(),
+            ),
+        textColor: Colors.red,
+      ),
+
+      CustomButton(
+        label: AppConstant.scheduleNotificationLabel,
+        onPressed: _scheduleNotification,
+      ),
+    ];
+  }
+
+  List<BlocListener> _buildListeners() {
+    return [
+      BlocListener<PermissionBloc, PermissionState>(
+        listener: _handlePermissionState,
+      ),
+      BlocListener<AlarmPermissionBloc, AlarmPermissionState>(
+        listener: _handleAlarmPermissionState,
+      ),
+      BlocListener<TimePickerBloc, TimePickerState>(
+        listener: _handleTimePickerState,
+      ),
+    ];
+  }
+
+  void _handlePermissionState(BuildContext context, PermissionState state) {
+    if (state is PermissionDeniedPermanently) {
+      UIHelpers.showPermissionDialog(context, _goToNotificationSettings);
+    } else if (state is PermissionGranted) {
+      UIHelpers.showSnackBarMessage(
+        context,
+        AppConstant.notificationPermissionGranted,
+      );
+    }
+  }
+
+  void _handleAlarmPermissionState(
+    BuildContext context,
+    AlarmPermissionState state,
+  ) {
+    if (state is AlarmPermissionDenied) {
+      _requestScheduleExactAlarmActivity();
+    } else if (state is AlarmPermissionIsNotAndroid) {
+      UIHelpers.showSnackBarMessage(
+        context,
+        AppConstant.alarmPermissionAndroidOnly,
+      );
+    } else if (state is AlarmPermissionGranted) {
+      UIHelpers.showSnackBarMessage(
+        context,
+        AppConstant.alarmPermissionGranted,
+      );
+    }
+  }
+
+  void _handleTimePickerState(BuildContext context, TimePickerState state) {
+    if (state is TimePickerSelected) {
+      UIHelpers.showSnackBarMessage(
+        context,
+        '${AppConstant.timeChose} ${state.timeOfDay.format(context)}',
+      );
+    }
+  }
+
+  Future<void> _scheduleNotification() async {
+    final bloc = context.read<TimePickerBloc>();
+    await selectTime(context);
+    bloc.add(SelectTimeEvent(selectedTime));
+  }
+
+  Future<void> _goToNotificationSettings() async {
+    Navigator.of(context).pop();
+    _shouldCheckNotificationPermission = true;
+    await openAppSettings();
+  }
+
+  Future<void> _requestScheduleExactAlarmActivity() async {
+    _shouldCheckAlarmPermission = true;
+    await sl<AndroidSettingsService>().openScheduleExactAlarmSettings();
   }
 }
