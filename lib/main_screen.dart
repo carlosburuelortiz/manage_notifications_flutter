@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:manage_notifications_flutter/notification_scheduler_service.dart';
 import 'package:manage_notifications_flutter/notification_service.dart';
+import 'package:manage_notifications_flutter/presentation/mixin/time_picker_mixin.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import 'bloc/blocs.dart';
@@ -17,10 +17,10 @@ class MainScreen extends StatefulWidget {
   State<MainScreen> createState() => _MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
+class _MainScreenState extends State<MainScreen>
+    with WidgetsBindingObserver, TimePickerMixin {
   bool _shouldCheckAlarmPermission = false;
   bool _shouldCheckNotificationPermission = false;
-  final _notificationScheduler = NotificationSchedulerService();
 
   @override
   void initState() {
@@ -79,7 +79,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   void showSnackBarMessage(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Notification permission was granted'),
+        content: Text(message),
         duration: const Duration(milliseconds: 1500),
       ),
     );
@@ -146,6 +146,16 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
             }
           },
         ),
+        BlocListener<TimePickerBloc, TimePickerState>(
+          listener: (context, state) {
+            if (state is TimePickerSelected) {
+              showSnackBarMessage(
+                context,
+                'Hora seleccionada ${state.timeOfDay.format(context)}',
+              );
+            }
+          },
+        ),
       ],
       child: Scaffold(
         body: Center(
@@ -181,11 +191,10 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
                 ),
               ),
               TextButton(
-                onPressed: () {
-                  _notificationScheduler.scheduleDailyNotification(
-                    hour: 19,
-                    minute: 32,
-                  );
+                onPressed: () async {
+                  final bloc = context.read<TimePickerBloc>();
+                  await selectTime(context);
+                  bloc.add(SelectTimeEvent(selectedTime));
                 },
                 child: Text('Schedule notification'),
               ),
