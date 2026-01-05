@@ -9,6 +9,8 @@ class PermissionBloc extends Bloc<PermissionEvent, PermissionState> {
       final status = await Permission.notification.request();
       if (status == PermissionStatus.permanentlyDenied) {
         emit(PermissionDeniedPermanently());
+      } else if (status == PermissionStatus.denied) {
+        emit(PermissionDenied());
       } else {
         emit(PermissionGranted());
       }

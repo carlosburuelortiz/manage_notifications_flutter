@@ -11,10 +11,12 @@ class AppConstant {
   static const String goToSettingsLabel = 'Ir a ajustes';
   static const String notificationPermissionGranted =
       'Notification permission was granted';
+  static const String notificationPermissionDenied =
+      'Notification permission is necessary for receive notifications';
   static const String alarmPermissionAndroidOnly =
       'Alarm permission is supported only in Android';
   static const String alarmPermissionGranted = 'Alarm permission was granted';
-  static const String timeChose = 'chosen time:';
+  static const String timeChose = 'Chosen time:';
 
   // Android Intents
   static const String scheduleExactAlarmAction =
@@ -28,5 +30,6 @@ class AppConstant {
   static const String scheduleNotificationLabel = 'Schedule notification';
 
   // Durations
-  static const Duration snackBarDuration = Duration(milliseconds: 1500);
+  static const Duration snackBarShortDuration = Duration(milliseconds: 1500);
+  static const Duration snackBarMediumDuration = Duration(milliseconds: 3000);
 }
