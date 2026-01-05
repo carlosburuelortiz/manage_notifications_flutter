@@ -20,7 +20,7 @@ class NotificationSchedulerService {
     await flutterLocalNotificationPlugin.zonedSchedule(
       0, //ID
       'Recordatorio diario',
-      'Ya paso 1 minuto bastardo!',
+      'Notificacion con la hora elegida',
       _nextInstanceOfTime(hour, minute),
       notificationDetails,
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
@@ -39,7 +39,7 @@ class NotificationSchedulerService {
       now.day,
       hour,
       minute,
-      now.second,
+      0, // first second
     );
     if (scheduled.isBefore(now)) {
       scheduled = scheduled.add(Duration(days: 1));
