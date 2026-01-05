@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:manage_notifications_flutter/core/app_constant.dart';
+import 'package:manage_notifications_flutter/core/snackbar_type_durations.dart';
 
 class UIHelpers {
   static void showPermissionDialog(
@@ -26,11 +27,22 @@ class UIHelpers {
     );
   }
 
-  static void showSnackBarMessage(BuildContext context, String message) {
-    final snackBar = SnackBar(
-      content: Text(message),
-      duration: AppConstant.snackBarDuration,
-    );
+  static void showSnackBarMessage(
+    BuildContext context,
+    String message, [
+    SnackbarTypeDurations durationType = SnackbarTypeDurations.medium,
+  ]) {
+    final Duration duration;
+    switch (durationType) {
+      case SnackbarTypeDurations.short:
+        duration = AppConstant.snackBarShortDuration;
+        break;
+      case SnackbarTypeDurations.medium:
+        duration = AppConstant.snackBarMediumDuration;
+        break;
+    }
+
+    final snackBar = SnackBar(content: Text(message), duration: duration);
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 }

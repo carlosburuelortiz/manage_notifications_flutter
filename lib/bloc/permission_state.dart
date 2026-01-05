@@ -4,4 +4,6 @@ class PermissionInitial extends PermissionState {}
 
 class PermissionDeniedPermanently extends PermissionState {}
 
+class PermissionDenied extends PermissionState {}
+
 class PermissionGranted extends PermissionState {}

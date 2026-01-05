@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:manage_notifications_flutter/core/app_constant.dart';
 import 'package:manage_notifications_flutter/core/injection.dart';
+import 'package:manage_notifications_flutter/core/snackbar_type_durations.dart';
 import 'package:manage_notifications_flutter/core/ui_helpers.dart';
 import 'package:manage_notifications_flutter/notification_service.dart';
 import 'package:manage_notifications_flutter/presentation/mixin/time_picker_mixin.dart';
@@ -115,6 +116,12 @@ class _MainScreenState extends State<MainScreen>
   void _handlePermissionState(BuildContext context, PermissionState state) {
     if (state is PermissionDeniedPermanently) {
       UIHelpers.showPermissionDialog(context, _goToNotificationSettings);
+    } else if (state is PermissionDenied) {
+      UIHelpers.showSnackBarMessage(
+        context,
+        AppConstant.notificationPermissionDenied,
+        SnackbarTypeDurations.medium,
+      );
     } else if (state is PermissionGranted) {
       UIHelpers.showSnackBarMessage(
         context,
