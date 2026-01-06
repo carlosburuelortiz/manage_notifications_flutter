@@ -22,36 +22,6 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen>
     with WidgetsBindingObserver, TimePickerMixin {
-  bool _shouldCheckAlarmPermission = false;
-  bool _shouldCheckNotificationPermission = false;
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      if (_shouldCheckAlarmPermission) {
-        _shouldCheckAlarmPermission = false;
-        context.read<AlarmPermissionBloc>().add(RequestAlarmPermission());
-      }
-
-      if (_shouldCheckNotificationPermission) {
-        _shouldCheckNotificationPermission = false;
-        context.read<PermissionBloc>().add(RequestNotificationPermission());
-      }
-    }
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
     return MultiBlocListener(
@@ -166,12 +136,10 @@ class _MainScreenState extends State<MainScreen>
 
   Future<void> _goToNotificationSettings() async {
     Navigator.of(context).pop();
-    _shouldCheckNotificationPermission = true;
     await openAppSettings();
   }
 
   Future<void> _requestScheduleExactAlarmActivity() async {
-    _shouldCheckAlarmPermission = true;
     await sl<AndroidSettingsService>().openScheduleExactAlarmSettings();
   }
 }
