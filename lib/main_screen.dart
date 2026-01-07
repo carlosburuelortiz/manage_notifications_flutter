@@ -1,3 +1,4 @@
+import 'package:app_settings/app_settings.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -50,7 +51,7 @@ class _MainScreenState extends State<MainScreen>
 
       CustomButton(
         label: AppConstant.showManualNotificationLabel,
-        onPressed: () => sl<NotificationService>().showManualNotification(),
+        onPressed: () => getIt<NotificationService>().showManualNotification(),
       ),
 
       CustomButton(
@@ -84,20 +85,46 @@ class _MainScreenState extends State<MainScreen>
   }
 
   void _handlePermissionState(BuildContext context, PermissionState state) {
-    if (state is PermissionDeniedPermanently) {
-      UIHelpers.showPermissionDialog(context, _goToNotificationSettings);
-    } else if (state is PermissionDenied) {
-      UIHelpers.showSnackBarMessage(
-        context,
-        AppConstant.notificationPermissionDenied,
-        SnackbarTypeDurations.medium,
-      );
-    } else if (state is PermissionGranted) {
-      UIHelpers.showSnackBarMessage(
-        context,
-        AppConstant.notificationPermissionGranted,
-      );
+    switch (state) {
+      case PermissionGranted _:
+        UIHelpers.showSnackBarMessage(
+          context,
+          AppConstant.notificationPermissionGranted,
+        );
+        break;
+      case PermissionDenied _:
+        UIHelpers.showSnackBarMessage(
+          context,
+          AppConstant.notificationPermissionDenied,
+          SnackbarTypeDurations.medium,
+        );
+        break;
+      case PermissionDeniedPermanently _:
+        UIHelpers.showPermissionDialog(context, _goToNotificationSettings);
+        break;
+      case PermissionDeniedGoToSettings _:
+        UIHelpers.showPermissionDialog(context, _goToNotificationIOSSettings);
+        break;
+      default:
+        break;
     }
+
+    // if (state is PermissionDeniedPermanently) {
+    //   UIHelpers.showPermissionDialog(context, _goToNotificationSettings);
+    // } else if (state is PermissionDenied) {
+    //   UIHelpers.showSnackBarMessage(
+    //     context,
+    //     AppConstant.notificationPermissionDenied,
+    //     SnackbarTypeDurations.medium,
+    //   );
+    // } else if (state is PermissionGranted) {
+    //   UIHelpers.showSnackBarMessage(
+    //     context,
+    //     AppConstant.notificationPermissionGranted,
+    //   );
+    // } else if (state is PermissionDeniedGoToSettings) {
+    //   UIHelpers.showPermissionDialog(context, _goToNotificationIOSSettings);
+    // }
   }
 
   void _handleAlarmPermissionState(
@@ -139,7 +166,12 @@ class _MainScreenState extends State<MainScreen>
     await openAppSettings();
   }
 
+  Future<void> _goToNotificationIOSSettings() async {
+    AppSettings.openAppSettings();
+    Navigator.of(context).pop();
+  }
+
   Future<void> _requestScheduleExactAlarmActivity() async {
-    await sl<AndroidSettingsService>().openScheduleExactAlarmSettings();
+    await getIt<AndroidSettingsService>().openScheduleExactAlarmSettings();
   }
 }

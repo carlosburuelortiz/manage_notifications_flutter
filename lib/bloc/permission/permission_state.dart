@@ -6,4 +6,6 @@ class PermissionDeniedPermanently extends PermissionState {}
 
 class PermissionDenied extends PermissionState {}
 
+class PermissionDeniedGoToSettings extends PermissionState {}
+
 class PermissionGranted extends PermissionState {}

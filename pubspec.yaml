@@ -29,6 +29,7 @@ environment:
 # versions available, run `flutter pub outdated`.
 dependencies:
   android_intent_plus: ^4.0.1
+  app_settings: ^7.0.0
   cupertino_icons: ^1.0.8
   flutter:
     sdk: flutter
