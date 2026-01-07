@@ -1,5 +1,5 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:manage_notifications_flutter/notification_service.dart';
+import 'package:manage_notifications_flutter/core/injection.dart';
 import 'package:timezone/timezone.dart' as tz;
 
 class NotificationSchedulerService {
@@ -17,7 +17,7 @@ class NotificationSchedulerService {
 
     const notificationDetails = NotificationDetails(android: androidDetails);
 
-    await flutterLocalNotificationPlugin.zonedSchedule(
+    await sl<FlutterLocalNotificationsPlugin>().zonedSchedule(
       0, //ID
       'Recordatorio diario',
       'Notificacion con la hora elegida',

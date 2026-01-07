@@ -1,9 +1,9 @@
 export 'alarm/alarm_permission_bloc.dart';
 export 'alarm/alarm_permission_event.dart';
 export 'alarm/alarm_permission_state.dart';
-export 'permission_bloc.dart';
-export 'permission_event.dart';
-export 'permission_state.dart';
+export 'permission/permission_bloc.dart';
+export 'permission/permission_event.dart';
+export 'permission/permission_state.dart';
 export 'timePicker/time_picker_bloc.dart';
 export 'timePicker/time_picker_event.dart';
 export 'timePicker/time_picker_state.dart';
