@@ -11,7 +11,7 @@ class PermissionBloc extends Bloc<PermissionEvent, PermissionState> {
   PermissionBloc() : super(PermissionInitial()) {
     on<RequestNotificationPermission>((event, emit) async {
       if (Platform.isIOS) {
-        final bool? result = await sl<FlutterLocalNotificationsPlugin>()
+        final bool? result = await getIt<FlutterLocalNotificationsPlugin>()
             .resolvePlatformSpecificImplementation<
               IOSFlutterLocalNotificationsPlugin
             >()

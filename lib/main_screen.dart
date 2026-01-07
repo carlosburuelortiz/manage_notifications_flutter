@@ -51,7 +51,7 @@ class _MainScreenState extends State<MainScreen>
 
       CustomButton(
         label: AppConstant.showManualNotificationLabel,
-        onPressed: () => sl<NotificationService>().showManualNotification(),
+        onPressed: () => getIt<NotificationService>().showManualNotification(),
       ),
 
       CustomButton(
@@ -172,6 +172,6 @@ class _MainScreenState extends State<MainScreen>
   }
 
   Future<void> _requestScheduleExactAlarmActivity() async {
-    await sl<AndroidSettingsService>().openScheduleExactAlarmSettings();
+    await getIt<AndroidSettingsService>().openScheduleExactAlarmSettings();
   }
 }

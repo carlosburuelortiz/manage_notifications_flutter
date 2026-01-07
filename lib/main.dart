@@ -21,9 +21,9 @@ class MyApp extends StatelessWidget {
       title: 'Material App',
       home: MultiBlocProvider(
         providers: [
-          BlocProvider(create: (_) => sl<PermissionBloc>()),
-          BlocProvider(create: (_) => sl<AlarmPermissionBloc>()),
-          BlocProvider(create: (_) => sl<TimePickerBloc>()),
+          BlocProvider(create: (_) => getIt<PermissionBloc>()),
+          BlocProvider(create: (_) => getIt<AlarmPermissionBloc>()),
+          BlocProvider(create: (_) => getIt<TimePickerBloc>()),
         ],
         child: MainScreen(),
       ),

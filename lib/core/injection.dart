@@ -9,31 +9,31 @@ import 'package:manage_notifications_flutter/notification_scheduler_service.dart
 import 'package:manage_notifications_flutter/notification_service.dart';
 import 'package:manage_notifications_flutter/service/android_settings_service.dart';
 
-final sl = GetIt.instance;
+final getIt = GetIt.instance;
 
 Future<void> setupDependencies() async {
   // Register FlutterLocalNotificationsPlugin as singleton
-  sl.registerLazySingleton<FlutterLocalNotificationsPlugin>(
+  getIt.registerLazySingleton<FlutterLocalNotificationsPlugin>(
     () => FlutterLocalNotificationsPlugin(),
   );
 
   await initializeNotifications();
 
   // Services
-  sl.registerLazySingleton<NotificationSchedulerService>(
+  getIt.registerLazySingleton<NotificationSchedulerService>(
     () => NotificationSchedulerService(),
   );
-  sl.registerLazySingleton<NotificationService>(
-    () => NotificationService(sl<FlutterLocalNotificationsPlugin>()),
+  getIt.registerLazySingleton<NotificationService>(
+    () => NotificationService(getIt<FlutterLocalNotificationsPlugin>()),
   );
-  sl.registerLazySingleton<AndroidSettingsService>(
+  getIt.registerLazySingleton<AndroidSettingsService>(
     () => AndroidSettingsService(),
   );
 
   // Blocs
-  sl.registerFactory(() => PermissionBloc());
-  sl.registerFactory(() => AlarmPermissionBloc());
-  sl.registerFactory(() => TimePickerBloc(/*NotificationService*/ sl()));
+  getIt.registerFactory(() => PermissionBloc());
+  getIt.registerFactory(() => AlarmPermissionBloc());
+  getIt.registerFactory(() => TimePickerBloc(/*NotificationService*/ getIt()));
 }
 
 Future<void> initializeNotifications() async {
@@ -52,7 +52,7 @@ Future<void> initializeNotifications() async {
     iOS: initializationSettingsIOS,
   );
 
-  await sl<FlutterLocalNotificationsPlugin>().initialize(
+  await getIt<FlutterLocalNotificationsPlugin>().initialize(
     initializationSettings,
   );
   await initializeTimeZone(); // Important!

@@ -17,7 +17,7 @@ class NotificationSchedulerService {
 
     const notificationDetails = NotificationDetails(android: androidDetails);
 
-    await sl<FlutterLocalNotificationsPlugin>().zonedSchedule(
+    await getIt<FlutterLocalNotificationsPlugin>().zonedSchedule(
       0, //ID
       'Recordatorio diario',
       'Notificacion con la hora elegida',
