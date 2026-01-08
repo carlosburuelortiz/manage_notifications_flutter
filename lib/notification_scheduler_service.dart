@@ -15,7 +15,16 @@ class NotificationSchedulerService {
       priority: Priority.high,
     );
 
-    const notificationDetails = NotificationDetails(android: androidDetails);
+    const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
+
+    const notificationDetails = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
 
     await getIt<FlutterLocalNotificationsPlugin>().zonedSchedule(
       0, //ID

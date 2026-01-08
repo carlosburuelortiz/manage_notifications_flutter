@@ -167,7 +167,7 @@ class _MainScreenState extends State<MainScreen>
   }
 
   Future<void> _goToNotificationIOSSettings() async {
-    AppSettings.openAppSettings();
+    AppSettings.openAppSettings(type: AppSettingsType.notification);
     Navigator.of(context).pop();
   }
 
